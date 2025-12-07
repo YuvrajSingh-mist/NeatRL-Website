@@ -1,9 +1,0 @@
-pygame
-numpy
-opencv-python==4.10.0.84
-gymnasium
-wandb
-torch
-torchvision
-torchaudio
-websockets
