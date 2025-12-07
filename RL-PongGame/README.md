@@ -278,3 +278,5 @@ python backend/server.py --model path/to/your/model.pt
 ## 📝 License
 
 MIT License - feel free to use for learning and projects!
+
+Thanks to https://github.com/bobcowher/youtube-dueling-ai-pong/tree/part9 reposiotry for the initial code!
