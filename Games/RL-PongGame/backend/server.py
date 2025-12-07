@@ -110,11 +110,9 @@ class PongServer:
     
     async def health_check(self, path, request_headers):
         """Handle health check requests from hosting providers"""
-        # Accept HEAD, GET, or POST requests for health checks
-        if path == "/" or path == "/health":
-            return (200, [("Content-Type", "text/plain")], b"OK\n")
-        # Return None to continue with WebSocket handshake
-        return None
+        # Return a 200 OK response for any HTTP request (GET, HEAD, POST, etc.)
+        # This prevents HEAD requests from causing errors
+        return (200, [], b"")
     
     async def handler(self, websocket):
         """Handle WebSocket connections"""
