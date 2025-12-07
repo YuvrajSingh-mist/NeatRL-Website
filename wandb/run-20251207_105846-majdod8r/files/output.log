@@ -1,0 +1,10 @@
+/Users/yuvrajsingh9886/Desktop/youtube-dueling-ai-pong/agent.py:322: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  obs = torch.tensor(obs, dtype=torch.float32)
+Traceback (most recent call last):
+  File "/Users/yuvrajsingh9886/Desktop/youtube-dueling-ai-pong/./train.py", line 47, in <module>
+    agent.train(episodes=episodes,
+  File "/Users/yuvrajsingh9886/Desktop/youtube-dueling-ai-pong/agent.py", line 175, in train
+    self.memory.store_transition(self.flip_obs(obs), player_2_action, player_2_reward, self.flip_obs(next_obs), done)
+  File "/Users/yuvrajsingh9886/Desktop/youtube-dueling-ai-pong/buffer.py", line 42, in store_transition
+    self.reward_memory[idx] = float(reward)
+KeyboardInterrupt
