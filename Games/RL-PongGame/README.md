@@ -12,8 +12,7 @@ A complete implementation of Pong with a trained Deep Q-Network (DQN) agent that
 - **🎮 Real-time Multiplayer**: WebSocket-based gameplay with authoritative server
 - **👥 Multiple Game Modes**: Human vs AI, AI vs AI, or Human vs Human
 - **📊 Training Infrastructure**: Complete RL training pipeline with WandB integration
-- **🎯 Pixel-Perfect Physics**: Deterministic game engine with consistent behavior
-- **⚡ Apple Silicon Support**: Optimized for MPS (Metal Performance Shaders)
+
 
 ## 🎯 Demo
 
