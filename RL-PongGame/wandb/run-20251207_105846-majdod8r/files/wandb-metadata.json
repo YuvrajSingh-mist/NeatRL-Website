@@ -1,0 +1,33 @@
+{
+  "os": "macOS-26.1-arm64-arm-64bit",
+  "python": "CPython 3.10.0",
+  "startedAt": "2025-12-07T05:28:46.563753Z",
+  "program": "/Users/yuvrajsingh9886/Desktop/youtube-dueling-ai-pong/./train.py",
+  "codePath": "train.py",
+  "codePathLocal": "train.py",
+  "email": "rajceo2031@gmail.com",
+  "root": "/Users/yuvrajsingh9886/Desktop/youtube-dueling-ai-pong",
+  "host": "Yuvrajs-MacBook-Air-6034.local",
+  "executable": "/opt/miniconda3/envs/game_rl/bin/python",
+  "cpu_count": 8,
+  "cpu_count_logical": 8,
+  "disk": {
+    "/": {
+      "total": "245107195904",
+      "used": "217711423488"
+    }
+  },
+  "memory": {
+    "total": "8589934592"
+  },
+  "apple": {
+    "name": "Apple M1",
+    "ecpuCores": 4,
+    "pcpuCores": 4,
+    "gpuCores": 7,
+    "memoryGb": 8,
+    "swapTotalBytes": "8589934592",
+    "ramTotalBytes": "8589934592"
+  },
+  "writerId": "vqfh4hstq8pflal8f3sd9m12mm1zgmzj"
+}
