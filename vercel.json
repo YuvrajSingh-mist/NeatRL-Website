@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/Website/index.html"
+    },
+    {
+      "source": "/games/pong",
+      "destination": "/Games/RL-PongGame/frontend/index_websocket.html"
+    }
+  ]
+}

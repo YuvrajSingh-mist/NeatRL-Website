@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Games Showcase</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">AI Games</div>
+            <div class="nav-links">
+                <a href="#games">Games</a>
+                <a href="#about">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Don't just watch AI.<br>Play against it.</h1>
+            <p class="hero-description">Experience cutting-edge AI in action. Challenge trained neural networks in classic games, powered by reinforcement learning.</p>
+            <a href="#games" class="cta-button">Start Playing</a>
+            <div class="stats">
+                <span class="stat-item">🤖 AI-Powered</span>
+                <span class="stat-divider">•</span>
+                <span class="stat-item">⚡ Real-time</span>
+                <span class="stat-divider">•</span>
+                <span class="stat-item">🎮 Interactive</span>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="code-snippet">
+                <div class="code-line">
+                    <span class="code-keyword">def</span> <span class="code-function">train_agent</span>():
+                </div>
+                <div class="code-line indent">
+                    <span class="code-comment"># Deep Q-Learning</span>
+                </div>
+                <div class="code-line indent">
+                    <span class="code-keyword">for</span> episode <span class="code-keyword">in</span> <span class="code-function">range</span>(episodes):
+                </div>
+                <div class="code-line indent2">
+                    state = env.<span class="code-function">reset</span>()
+                </div>
+                <div class="code-line indent2">
+                    action = agent.<span class="code-function">select_action</span>(state)
+                </div>
+                <div class="code-line indent2">
+                    reward, done = env.<span class="code-function">step</span>(action)
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="games" class="games-section">
+        <div class="container">
+            <h2 class="section-title">Choose Your Challenge</h2>
+            <p class="section-description">Click on any game to start playing against AI</p>
+            
+            <div class="games-grid">
+                <div class="game-card" data-game="rl-pong">
+                    <div class="game-icon">🏓</div>
+                    <h3 class="game-title">Pong AI</h3>
+                    <p class="game-description">Play against a Deep Q-Learning agent trained on thousands of games. Can you beat the AI?</p>
+                    <div class="game-tags">
+                        <span class="tag">DQN</span>
+                        <span class="tag">PyTorch</span>
+                        <span class="tag">Real-time</span>
+                    </div>
+                    <div class="game-features">
+                        <div class="feature">✓ Trained Neural Network</div>
+                        <div class="feature">✓ WebSocket Multiplayer</div>
+                        <div class="feature">✓ AI vs Human</div>
+                    </div>
+                    <button class="play-button" onclick="playGame('rl-pong')">
+                        Play Now
+                        <span class="button-arrow">→</span>
+                    </button>
+                </div>
+
+                <!-- Placeholder for future games -->
+                <div class="game-card coming-soon">
+                    <div class="game-icon">🎯</div>
+                    <h3 class="game-title">Coming Soon</h3>
+                    <p class="game-description">More AI-powered games are on the way. Stay tuned!</p>
+                    <div class="game-tags">
+                        <span class="tag">Reinforcement Learning</span>
+                    </div>
+                    <div class="coming-soon-badge">Coming Soon</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2 class="section-title">The Technology</h2>
+                    <p class="about-description">
+                        These games showcase the power of reinforcement learning and neural networks. 
+                        Each AI agent learns through trial and error, developing strategies that can 
+                        challenge even experienced players.
+                    </p>
+                    <div class="tech-stack">
+                        <div class="tech-item">
+                            <div class="tech-icon">🧠</div>
+                            <div class="tech-name">Deep Q-Learning</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon">🔥</div>
+                            <div class="tech-name">PyTorch</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon">⚡</div>
+                            <div class="tech-name">WebSocket</div>
+                        </div>
+                        <div class="tech-item">
+                            <div class="tech-icon">🎮</div>
+                            <div class="tech-name">Gymnasium</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-visual">
+                    <div class="neural-network">
+                        <div class="nn-layer">
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                        </div>
+                        <div class="nn-layer">
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                        </div>
+                        <div class="nn-layer">
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                        </div>
+                        <div class="nn-layer">
+                            <div class="neuron"></div>
+                            <div class="neuron"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>Built with ❤️ using Reinforcement Learning</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
