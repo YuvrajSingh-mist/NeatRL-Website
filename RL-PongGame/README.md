@@ -100,6 +100,12 @@ Then open in your browser:
 http://localhost:8000/frontend/index_websocket.html
 ```
 
+### 4. Play the PyGame version!
+
+```bash
+python main.py
+```
+
 ## 🎮 How to Play
 
 ### Controls
@@ -184,24 +190,9 @@ Training metrics are logged to:
 tensorboard --logdir runs/
 ```
 
-## 🔧 Server Configuration
 
-### Command Line Options
 
-```bash
-python backend/server.py --help
 
-Options:
-  --host HOST          Host to bind to (default: 0.0.0.0)
-  --port PORT          Port to bind to (default: 8765)
-  --model PATH         Path to trained model (default: models/latest.pt)
-```
-
-### Custom Model
-
-```bash
-python backend/server.py --model path/to/your/model.pt
-```
 
 ## 📊 Game Environment
 
