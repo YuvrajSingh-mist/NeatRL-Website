@@ -108,6 +108,14 @@ class PongServer:
                 return_exceptions=True
             )
     
+    async def health_check(self, path, request_headers):
+        """Handle health check requests from hosting providers"""
+        # Accept HEAD, GET, or POST requests for health checks
+        if path == "/" or path == "/health":
+            return (200, [("Content-Type", "text/plain")], b"OK\n")
+        # Return None to continue with WebSocket handshake
+        return None
+    
     async def handler(self, websocket):
         """Handle WebSocket connections"""
         self.clients.add(websocket)
@@ -242,8 +250,13 @@ class PongServer:
         print(f"Starting Pong WebSocket server on ws://{self.host}:{self.port}")
         print(f"AI Agent: {'Loaded' if self.agent else 'Not available'}")
         
-        # Start WebSocket server
-        server = await websockets.serve(self.handler, self.host, self.port)
+        # Start WebSocket server with health check handler
+        server = await websockets.serve(
+            self.handler, 
+            self.host, 
+            self.port,
+            process_request=self.health_check
+        )
         
         # Start game loop
         game_task = asyncio.create_task(self.game_loop())
