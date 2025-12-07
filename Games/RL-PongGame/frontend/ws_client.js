@@ -3,7 +3,7 @@
 
 const WS_URL = (location.hostname === "" || location.hostname === "localhost") 
     ? "ws://localhost:8765" 
-    : `ws://${location.hostname}:8765`;
+    : "wss://rl-pong-game-server.onrender.com";
 
 class WSClient {
     constructor() {
