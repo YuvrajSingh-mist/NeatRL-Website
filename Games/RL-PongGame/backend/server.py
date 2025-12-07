@@ -143,10 +143,11 @@ class PongServer:
     async def game_loop(self):
         """Main game loop that updates game state"""
         self.running = True
-        target_fps = 30  # Slower gameplay
+        target_fps = 60  # Match local gameplay speed
         frame_time = 1.0 / target_fps
         
         print("Game loop started")
+        print(f"Running at {target_fps} FPS")
         
         # Initialize pending actions
         self.pending_action_p1 = 0
