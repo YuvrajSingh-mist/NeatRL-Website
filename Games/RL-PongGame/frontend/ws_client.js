@@ -1,17 +1,9 @@
 // WebSocket client for Pong game
 // Handles connection to Python backend and synchronizes game state
 
-// Determine WebSocket URL based on environment
-let WS_URL;
-if (location.hostname === "" || location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-    WS_URL = "ws://localhost:8765/ws";
-} else {
-    // For production, use same host/port with /ws endpoint
-    const protocol = location.protocol === "https:" ? "wss:" : "ws:";
-    const port = location.port ? `:${location.port}` : "";
-    WS_URL = `${protocol}//${location.hostname}${port}/ws`;
-    console.log(`Production WebSocket URL: ${WS_URL}`);
-}
+// Import configuration
+import { WS_URL } from './config.js';
+
 
 class WSClient {
     constructor() {
@@ -164,5 +156,6 @@ class WSClient {
     }
 }
 
-// Create global instance
+// Create and export global instance
 const wsClient = new WSClient();
+export { wsClient };

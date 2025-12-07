@@ -1,6 +1,9 @@
 // Pong Game - WebSocket Synchronized Version
 // This version receives game state from Python backend via WebSocket
 
+// Import WebSocket client
+import { wsClient } from './ws_client.js';
+
 // Paddle class (for rendering only)
 class Paddle {
     constructor(x, y, playerColor, windowHeight, width = 20, height = 120) {
