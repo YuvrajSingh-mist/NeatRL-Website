@@ -8,7 +8,8 @@ A beautiful, interactive website showcasing AI-powered games with reinforcement 
 
 ## 🌟 Live Demo
 
-- **Website**: [Deploy on Vercel](#deployment)
+- **Website**: Deploy on Vercel
+- **Game Server**: Deploy on Render
 - **Game**: Pong AI with Deep Q-Learning
 
 ## 🏗️ Project Structure
@@ -23,13 +24,13 @@ youtube-dueling-ai-pong/
 ├── Games/                      # Game collection
 │   └── RL-PongGame/           # Pong AI game
 │       ├── frontend/          # Game UI
-│       ├── backend/           # WebSocket server
+│       ├── backend/           # WebSocket server (aiohttp)
 │       ├── training/          # RL training code
 │       └── models/            # Trained models
 │
-├── vercel.json                # Vercel configuration
-├── .vercelignore              # Files to ignore
-└── DEPLOYMENT.md              # Deployment guide
+├── vercel.json                # Vercel config (website)
+├── render.yaml                # Render config (game server)
+└── README.md                  # This file
 ```
 
 ## 🚀 Quick Start
@@ -38,59 +39,68 @@ youtube-dueling-ai-pong/
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone https://github.com/YuvrajSingh-mist/NeatRL-Website.git
+cd NeatRL-Website
 ```
 
-2. **Start the website**
-```bash
-cd Website
-python -m http.server 8000
-# Open http://localhost:8000
-```
-
-3. **Start the game backend**
+2. **Start the game server**
 ```bash
 cd Games/RL-PongGame
 pip install -r requirements.txt
 python backend/server.py
+# Server runs on http://localhost:8765
+# WebSocket at ws://localhost:8765/ws
 ```
 
-4. **Play the game**
-- Open the website in your browser
-- Click "Play Now" on the Pong AI card
+3. **Open the game**
+```bash
+# Open frontend/index_websocket.html in your browser
+```
 
 ## 📦 Deployment
 
-### Deploy Website + Game Frontend (Vercel)
+### Deploy Website (Vercel)
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YuvrajSingh-mist/NeatRL-Website)
 
-1. Go to **https://vercel.com** → Sign in
-2. Click **"Add New..." → "Project"**
-3. Import your repo → Click **"Deploy"**
-4. Done! ✅
+The website deploys automatically on every push to master.
 
-### Deploy Backend (Render)
+### Deploy Game Server (Render)
 
-1. Go to **https://render.com** → Sign up
-2. Click **"New +" → "Web Service"**
-3. Connect repo → Configure:
-   - **Root Directory**: `Games/RL-PongGame`
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `python backend/server.py`
-4. Deploy & get your backend URL
-5. Update `Games/RL-PongGame/frontend/ws_client.js` with backend URL
+The game server is configured via `render.yaml` for automatic deployment:
 
-📖 **Full guide**: See [DEPLOYMENT.md](DEPLOYMENT.md)
+1. Go to **https://render.com** → Sign in with GitHub
+2. Click **"New +" → "Blueprint"**
+3. Select your repository
+4. Render will detect `render.yaml` and configure automatically
+5. Click **"Apply"** to deploy
+
+**What gets deployed:**
+- HTTP server on port 8765 (set by Render's PORT env variable)
+- Health check endpoint at `/health`
+- Status endpoint at `/status`
+- WebSocket endpoint at `/ws`
+- AI model loaded from `models/latest.pt`
+
+**Environment (automatically configured):**
+- Python 3.13
+- Headless mode (no display/audio required)
+- All dependencies from `requirements.txt`
+
+The server will:
+- ✅ Pass Render's health checks
+- ✅ Handle WebSocket connections
+- ✅ Run the AI game loop
+- ✅ Serve multiple concurrent clients
 
 ## 🎮 Features
 
-- ✨ **Beautiful UI** - Inspired by papercode.vercel.app
+- ✨ **Beautiful UI** - Modern, responsive design
 - 🤖 **AI-Powered** - Deep Q-Learning trained agents
-- ⚡ **Real-time** - WebSocket multiplayer
+- ⚡ **Real-time** - WebSocket communication
 - 📱 **Responsive** - Works on all devices
 - 🎨 **Smooth Animations** - Parallax effects and transitions
+- 🏥 **Production Ready** - Health checks, error handling, headless mode
 
 ## 🛠️ Tech Stack
 
@@ -101,27 +111,38 @@ python backend/server.py
 - WebSocket API
 
 ### Backend
-- Python 3.10
-- WebSocket server
+- Python 3.13
+- aiohttp (HTTP + WebSocket server)
 - PyTorch (Deep Learning)
 - Gymnasium (RL environment)
+- Pygame (headless game engine)
 
 ### Deployment
-- Vercel (Frontend hosting)
-- Render/Railway (Backend hosting)
+- Vercel (Static website)
+- Render (Python game server)
 
-## 📖 Documentation
+## 🐛 Troubleshooting
 
-- [Deployment Guide](DEPLOYMENT.md) - Complete deployment instructions
-- [Game README](Games/RL-PongGame/README.md) - Pong AI documentation
+### Server Issues
 
-## 🎯 Adding New Games
+If deployment fails:
 
-1. Create game folder in `Games/`
-2. Add game card to `Website/index.html`
-3. Update routing in `vercel.json`
-4. Deploy backend (if needed)
-5. Push to GitHub (auto-deploys to Vercel)
+1. **Check logs** in Render dashboard
+2. **Verify model file** exists at `Games/RL-PongGame/models/latest.pt`
+3. **Test locally** first:
+   ```bash
+   cd Games/RL-PongGame
+   PORT=8765 python backend/server.py
+   # Should see: "Server running on http://0.0.0.0:8765"
+   ```
+
+### WebSocket Connection Issues
+
+If the game doesn't connect:
+
+1. **Check server status**: Visit `https://your-app.onrender.com/status`
+2. **Verify WebSocket URL** in browser console
+3. **Check CORS** if hosting frontend elsewhere
 
 ## 🤝 Contributing
 

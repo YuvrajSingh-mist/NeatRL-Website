@@ -17,13 +17,17 @@ import argparse
 import sys
 import os
 
+# Set headless mode BEFORE importing pygame
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+os.environ["SDL_AUDIODRIVER"] = "dummy"
+
 # Add parent directory to path to import game modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    import websockets
+    from aiohttp import web
 except ImportError:
-    print("websockets not installed. Run: pip install websockets")
+    print("aiohttp not installed. Run: pip install aiohttp")
     sys.exit(1)
 
 import numpy as np
@@ -33,9 +37,10 @@ import torch
 
 
 class PongServer:
-    def __init__(self, host="0.0.0.0", port=8765, model_path="models/latest.pt"):
+    def __init__(self, host="0.0.0.0", port=8765, http_port=None, model_path="models/latest.pt"):
         self.host = host
         self.port = port
+        self.http_port = http_port or port  # Use same port for HTTP and WebSocket
         
         # Initialize game with render mode that doesn't require display
         # CRITICAL: Keep same dimensions and settings as training!
@@ -98,84 +103,19 @@ class PongServer:
                         self.game.player_2_score >= self.game.top_score)
         }
     
-    async def broadcast_state(self):
-        """Send current game state to all connected clients"""
-        if self.clients:
-            state = self.get_game_state()
-            message = json.dumps(state)
-            await asyncio.gather(
-                *[client.send(message) for client in self.clients],
-                return_exceptions=True
-            )
+    async def http_health_handler(self, request):
+        """HTTP health check endpoint for Render"""
+        return web.Response(text="OK", status=200)
     
-    async def health_check(self, path, request_headers):
-        """Handle health check requests from hosting providers"""
-        # Return a 200 OK response for any HTTP request (GET, HEAD, POST, etc.)
-        # This prevents HEAD requests from causing errors
-        return (200, [], b"")
-    
-    async def handler(self, websocket):
-        """Handle WebSocket connections"""
-        self.clients.add(websocket)
-        print(f"Client connected. Total clients: {len(self.clients)}")
-        
-        # Send initial state
-        await websocket.send(json.dumps(self.get_game_state()))
-        
-        try:
-            async for message in websocket:
-                try:
-                    data = json.loads(message)
-                    await self.handle_message(data, websocket)
-                except json.JSONDecodeError:
-                    print(f"Invalid JSON: {message}")
-                except Exception as e:
-                    print(f"Error handling message: {e}")
-        except websockets.exceptions.ConnectionClosed:
-            print("Client connection closed")
-        finally:
-            self.clients.remove(websocket)
-            print(f"Client disconnected. Total clients: {len(self.clients)}")
-    
-    async def handle_message(self, data, websocket):
-        """Process messages from clients"""
-        msg_type = data.get("type")
-        
-        if msg_type == "reset":
-            self.game.reset()
-            await self.broadcast_state()
-            
-        elif msg_type == "action":
-            player = data.get("player", 1)
-            action = data.get("action", 0)
-            
-            # Store action persistently
-            if player == 1:
-                self.pending_action_p1 = action
-            else:
-                self.pending_action_p2 = action
-                
-        elif msg_type == "mode":
-            player = data.get("player", 1)
-            mode = data.get("mode", "human")
-            
-            if mode in ["human", "ai"]:
-                if player == 1:
-                    self.player1_mode = mode
-                    self.game.player1 = mode
-                else:
-                    self.player2_mode = mode
-                    self.game.player2 = mode
-                
-                # Confirm mode change
-                await websocket.send(json.dumps({
-                    "type": "mode",
-                    "player": player,
-                    "mode": mode
-                }))
-                
-        elif msg_type == "get_state":
-            await websocket.send(json.dumps(self.get_game_state()))
+    async def http_status_handler(self, request):
+        """HTTP status endpoint"""
+        status = {
+            "status": "running",
+            "clients": len(self.clients),
+            "ai_loaded": self.agent is not None,
+            "game_score": f"{self.game.player_1_score}-{self.game.player_2_score}"
+        }
+        return web.json_response(status)
     
     def get_player_action(self, player, obs):
         """Get action for a player based on their mode"""
@@ -218,7 +158,7 @@ class PongServer:
             # Check if game is already over (someone reached 20 points)
             if self.game.player_1_score >= 20 or self.game.player_2_score >= 20:
                 # Just broadcast state and wait, don't step
-                await self.broadcast_state()
+                await self.broadcast_state_aiohttp()
                 await asyncio.sleep(frame_time)
                 continue
             
@@ -236,7 +176,7 @@ class PongServer:
             )
             
             # Broadcast updated state to all clients
-            await self.broadcast_state()
+            await self.broadcast_state_aiohttp()
             
             # Maintain target FPS
             elapsed = asyncio.get_event_loop().time() - start_time
@@ -244,22 +184,29 @@ class PongServer:
             await asyncio.sleep(sleep_time)
     
     async def start(self):
-        """Start the WebSocket server and game loop"""
-        print(f"Starting Pong WebSocket server on ws://{self.host}:{self.port}")
+        """Start the unified HTTP/WebSocket server"""
+        print(f"Starting Pong server on {self.host}:{self.http_port}")
         print(f"AI Agent: {'Loaded' if self.agent else 'Not available'}")
         
-        # Start WebSocket server with health check handler
-        server = await websockets.serve(
-            self.handler, 
-            self.host, 
-            self.port,
-            process_request=self.health_check
-        )
+        # Create HTTP app with WebSocket support
+        app = web.Application()
+        app.router.add_get('/', self.http_health_handler)
+        app.router.add_get('/health', self.http_health_handler)
+        app.router.add_get('/status', self.http_status_handler)
+        app.router.add_get('/ws', self.websocket_handler)  # WebSocket endpoint
+        
+        # Start unified server
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, self.host, self.http_port)
+        await site.start()
+        print(f"Server running on http://{self.host}:{self.http_port}")
+        print(f"WebSocket endpoint: ws://{self.host}:{self.http_port}/ws")
         
         # Start game loop
         game_task = asyncio.create_task(self.game_loop())
         
-        print("Server ready! Open index.html in your browser.")
+        print(f"Server ready!")
         
         # Keep running
         try:
@@ -268,14 +215,102 @@ class PongServer:
             print("\nShutting down...")
             self.running = False
             await game_task
+            await runner.cleanup()
+    
+    async def websocket_handler(self, request):
+        """Handle WebSocket connections through aiohttp"""
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+        
+        self.clients.add(ws)
+        print(f"Client connected. Total clients: {len(self.clients)}")
+        
+        # Send initial state
+        await ws.send_str(json.dumps(self.get_game_state()))
+        
+        try:
+            async for msg in ws:
+                if msg.type == web.WSMsgType.TEXT:
+                    try:
+                        data = json.loads(msg.data)
+                        await self.handle_message_aiohttp(data, ws)
+                    except json.JSONDecodeError:
+                        print(f"Invalid JSON: {msg.data}")
+                    except Exception as e:
+                        print(f"Error handling message: {e}")
+                elif msg.type == web.WSMsgType.ERROR:
+                    print(f'WebSocket error: {ws.exception()}')
+        finally:
+            self.clients.discard(ws)
+            print(f"Client disconnected. Total clients: {len(self.clients)}")
+        
+        return ws
+    
+    async def handle_message_aiohttp(self, data, websocket):
+        """Process messages from clients (aiohttp version)"""
+        msg_type = data.get("type")
+        
+        if msg_type == "reset":
+            self.game.reset()
+            await self.broadcast_state_aiohttp()
+            
+        elif msg_type == "action":
+            player = data.get("player", 1)
+            action = data.get("action", 0)
+            
+            # Store action persistently
+            if player == 1:
+                self.pending_action_p1 = action
+            else:
+                self.pending_action_p2 = action
+                
+        elif msg_type == "mode":
+            player = data.get("player", 1)
+            mode = data.get("mode", "human")
+            
+            if mode in ["human", "ai"]:
+                if player == 1:
+                    self.player1_mode = mode
+                    self.game.player1 = mode
+                else:
+                    self.player2_mode = mode
+                    self.game.player2 = mode
+                
+                # Confirm mode change
+                await websocket.send_str(json.dumps({
+                    "type": "mode",
+                    "player": player,
+                    "mode": mode
+                }))
+                
+        elif msg_type == "get_state":
+            await websocket.send_str(json.dumps(self.get_game_state()))
+    
+    async def broadcast_state_aiohttp(self):
+        """Send current game state to all connected clients (aiohttp version)"""
+        if self.clients:
+            state = self.get_game_state()
+            message = json.dumps(state)
+            for client in list(self.clients):
+                try:
+                    if not client.closed:
+                        await client.send_str(message)
+                except Exception as e:
+                    print(f"Error broadcasting to client: {e}")
+                    self.clients.discard(client)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pong WebSocket Server")
     parser.add_argument("--host", default="0.0.0.0", help="Host to bind to")
-    parser.add_argument("--port", default=8765, type=int, help="Port to bind to")
+    parser.add_argument("--port", default=8765, type=int, help="WebSocket port")
+    parser.add_argument("--http-port", default=None, type=int, help="HTTP port (defaults to PORT env or same as WebSocket)")
     parser.add_argument("--model", default="models/latest.pt", help="Path to trained model")
     args = parser.parse_args()
     
-    server = PongServer(host=args.host, port=args.port, model_path=args.model)
+    # Use PORT env variable if set (Render requirement)
+    http_port = args.http_port or int(os.environ.get("PORT", args.port))
+    
+    server = PongServer(host=args.host, port=args.port, http_port=http_port, model_path=args.model)
     asyncio.run(server.start())
+

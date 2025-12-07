@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: pong-ai-game
+    env: python
+    region: oregon
+    plan: free
+    branch: master
+    buildCommand: cd Games/RL-PongGame && pip install -r requirements.txt
+    startCommand: cd Games/RL-PongGame && python backend/server.py
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        sync: false
+      - key: SDL_VIDEODRIVER
+        value: dummy
+      - key: SDL_AUDIODRIVER
+        value: dummy
+      - key: PYGAME_HIDE_SUPPORT_PROMPT
+        value: "1"
