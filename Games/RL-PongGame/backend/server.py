@@ -30,11 +30,8 @@ except ImportError:
     print("aiohttp not installed. Run: pip install aiohttp")
     sys.exit(1)
 
-import numpy as np
 from backend.core.game import Pong
 from training.agent import Agent
-import torch
-
 
 class PongServer:
     def __init__(self, host="0.0.0.0", port=8765, http_port=None, model_path="models/latest.pt"):
@@ -143,7 +140,7 @@ class PongServer:
     async def game_loop(self):
         """Main game loop that updates game state"""
         self.running = True
-        target_fps = 60  # Match local gameplay speed
+        target_fps = 30  # Match local gameplay speed
         frame_time = 1.0 / target_fps
         
         print("Game loop started")
