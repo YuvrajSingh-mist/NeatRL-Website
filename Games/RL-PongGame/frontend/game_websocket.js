@@ -61,6 +61,7 @@ class PongClient {
 
         this.paddleHeight = 120;
         this.paddleWidth = 20;
+        this.paddleSpeed = 8; // Local prediction speed
 
         // Setup canvas
         this.canvas = document.getElementById('gameCanvas');
@@ -77,6 +78,11 @@ class PongClient {
         // Player modes
         this.player1Mode = "human";
         this.player2Mode = "ai";
+        
+        // Client-side prediction
+        this.localPaddle1Y = 0;
+        this.localPaddle2Y = 0;
+        this.predictionEnabled = true;
 
         // Game state from server
         this.gameState = {
@@ -175,13 +181,41 @@ class PongClient {
     updateGameState(state) {
         this.gameState = state;
         
-        // Update render positions with bounds checking
+        // Update ball (always use server position)
         this.ball.x = state.ball.x;
         this.ball.y = state.ball.y;
         
-        // Clamp paddle positions to canvas bounds
-        this.player1Paddle.y = Math.max(0, Math.min(state.paddle1.y, this.windowHeight - this.paddleHeight));
-        this.player2Paddle.y = Math.max(0, Math.min(state.paddle2.y, this.windowHeight - this.paddleHeight));
+        // Update paddles with prediction correction
+        const serverPaddle1Y = Math.max(0, Math.min(state.paddle1.y, this.windowHeight - this.paddleHeight));
+        const serverPaddle2Y = Math.max(0, Math.min(state.paddle2.y, this.windowHeight - this.paddleHeight));
+        
+        // For human players, use local prediction; for AI, use server position
+        if (this.player1Mode === 'human' && this.predictionEnabled) {
+            // Sync local prediction with server (gradual correction to avoid jitter)
+            const diff1 = serverPaddle1Y - this.localPaddle1Y;
+            if (Math.abs(diff1) > 20) {
+                this.localPaddle1Y = serverPaddle1Y; // Snap if too far
+            } else {
+                this.localPaddle1Y += diff1 * 0.3; // Smooth correction
+            }
+            this.player1Paddle.y = this.localPaddle1Y;
+        } else {
+            this.player1Paddle.y = serverPaddle1Y;
+            this.localPaddle1Y = serverPaddle1Y;
+        }
+        
+        if (this.player2Mode === 'human' && this.predictionEnabled) {
+            const diff2 = serverPaddle2Y - this.localPaddle2Y;
+            if (Math.abs(diff2) > 20) {
+                this.localPaddle2Y = serverPaddle2Y;
+            } else {
+                this.localPaddle2Y += diff2 * 0.3;
+            }
+            this.player2Paddle.y = this.localPaddle2Y;
+        } else {
+            this.player2Paddle.y = serverPaddle2Y;
+            this.localPaddle2Y = serverPaddle2Y;
+        }
     }
 
     updateModeButtons() {
@@ -223,21 +257,40 @@ class PongClient {
         return action;
     }
 
+    updateLocalPrediction() {
+        // Update local paddle positions immediately based on input
+        if (this.player1Mode === 'human' && this.predictionEnabled) {
+            const action1 = this.getPlayerAction(1);
+            if (action1 === 1) { // Up
+                this.localPaddle1Y = Math.max(0, this.localPaddle1Y - this.paddleSpeed);
+            } else if (action1 === 2) { // Down
+                this.localPaddle1Y = Math.min(this.windowHeight - this.paddleHeight, this.localPaddle1Y + this.paddleSpeed);
+            }
+            this.player1Paddle.y = this.localPaddle1Y;
+        }
+        
+        if (this.player2Mode === 'human' && this.predictionEnabled) {
+            const action2 = this.getPlayerAction(2);
+            if (action2 === 1) { // Up
+                this.localPaddle2Y = Math.max(0, this.localPaddle2Y - this.paddleSpeed);
+            } else if (action2 === 2) { // Down
+                this.localPaddle2Y = Math.min(this.windowHeight - this.paddleHeight, this.localPaddle2Y + this.paddleSpeed);
+            }
+            this.player2Paddle.y = this.localPaddle2Y;
+        }
+    }
+    
     sendActions() {
-        // Send current actions for responsive controls
+        // Always send current actions (no filtering for max responsiveness)
         const action1 = this.getPlayerAction(1);
         const action2 = this.getPlayerAction(2);
 
-        // Always send to ensure responsiveness
-        if (action1 !== this.lastSentAction1 || action1 !== 0) {
-            wsClient.sendAction(1, action1);
-            this.lastSentAction1 = action1;
-        }
-
-        if (action2 !== this.lastSentAction2 || action2 !== 0) {
-            wsClient.sendAction(2, action2);
-            this.lastSentAction2 = action2;
-        }
+        // Send even if unchanged - server needs continuous input
+        wsClient.sendAction(1, action1);
+        wsClient.sendAction(2, action2);
+        
+        this.lastSentAction1 = action1;
+        this.lastSentAction2 = action2;
     }
 
     fillBackground() {
@@ -295,14 +348,15 @@ class PongClient {
     }
 
     startRenderLoop() {
-        // Send actions at 30fps for better responsiveness
+        // Send actions at 60fps for maximum responsiveness
         this.actionSendInterval = setInterval(() => {
             this.sendActions();
-        }, 1000 / 30);
+        }, 1000 / 60);
 
-        // Render at 60fps for smooth visuals
+        // Render at 60fps with local prediction
         const loop = () => {
-            this.render();
+            this.updateLocalPrediction(); // Update local paddles FIRST
+            this.render(); // Then render
             requestAnimationFrame(loop);
         };
         loop();

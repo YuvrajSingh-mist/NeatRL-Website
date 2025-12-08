@@ -140,11 +140,13 @@ class PongServer:
     async def game_loop(self):
         """Main game loop that updates game state"""
         self.running = True
-        target_fps = 30  # Match local gameplay speed
+        target_fps = 60  # Game simulation speed
         frame_time = 1.0 / target_fps
+        broadcast_interval = 2  # Broadcast every 2 frames for less network traffic
+        frame_counter = 0
         
         print("Game loop started")
-        print(f"Running at {target_fps} FPS")
+        print(f"Running at {target_fps} FPS, broadcasting every {broadcast_interval} frames")
         
         # Initialize pending actions
         self.pending_action_p1 = 0
@@ -152,6 +154,7 @@ class PongServer:
         
         while self.running:
             start_time = asyncio.get_event_loop().time()
+            frame_counter += 1
             
             # Check if game is already over (someone reached 20 points)
             if self.game.player_1_score >= 20 or self.game.player_2_score >= 20:
@@ -173,8 +176,9 @@ class PongServer:
                 player_2_action=player2_action
             )
             
-            # Broadcast updated state to all clients
-            await self.broadcast_state_aiohttp()
+            # Broadcast state every N frames to reduce network load
+            if frame_counter % broadcast_interval == 0:
+                await self.broadcast_state_aiohttp()
             
             # Maintain target FPS
             elapsed = asyncio.get_event_loop().time() - start_time
