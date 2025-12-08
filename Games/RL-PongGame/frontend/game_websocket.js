@@ -309,10 +309,21 @@ class PongClient {
     }
 }
 
-// Player mode control function
-function setPlayerMode(player, mode) {
+// Player mode control function - make it globally accessible
+window.setPlayerMode = function(player, mode) {
     wsClient.setMode(player, mode);
-}
+    
+    // Update button states
+    if (player === 1) {
+        document.getElementById('p1-human').classList.toggle('active', mode === 'human');
+        document.getElementById('p1-ai').classList.toggle('active', mode === 'ai');
+    } else {
+        document.getElementById('p2-human').classList.toggle('active', mode === 'human');
+        document.getElementById('p2-ai').classList.toggle('active', mode === 'ai');
+    }
+    
+    console.log(`Player ${player} mode set to: ${mode}`);
+};
 
 // Initialize game when page loads
 let game = null;
