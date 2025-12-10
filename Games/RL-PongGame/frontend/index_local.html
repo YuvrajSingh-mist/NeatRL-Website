@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game - Local AI (No Server Required)</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+        }
+        
+        h1 {
+            color: #fff;
+            margin: 20px 0 10px 0;
+            font-size: 36px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #4CAF50;
+            font-size: 18px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #333;
+            display: block;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        #controls {
+            margin-top: 20px;
+            color: #fff;
+            font-size: 14px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px 30px;
+            border-radius: 10px;
+            max-width: 900px;
+        }
+        
+        #controls h3 {
+            margin: 0 0 15px 0;
+            color: #fff;
+            font-size: 20px;
+        }
+        
+        #ai-status {
+            display: inline-block;
+            margin-bottom: 15px;
+            padding: 8px 15px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            font-weight: bold;
+            color: #FFD700;
+        }
+        
+        .control-section {
+            display: flex;
+            justify-content: space-around;
+            gap: 40px;
+            margin-bottom: 15px;
+        }
+        
+        .player-controls {
+            flex: 1;
+        }
+        
+        .player-controls h4 {
+            margin: 5px 0;
+        }
+        
+        .player1-title {
+            color: rgb(50, 205, 50);
+        }
+        
+        .player2-title {
+            color: rgb(138, 43, 226);
+        }
+        
+        .keys {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .key {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .mode-selector {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .mode-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .player-mode-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .player-mode-group label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .mode-button-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        button.active {
+            background-color: rgba(76, 175, 80, 0.5);
+            border-color: rgb(76, 175, 80);
+        }
+        
+        .reset-button {
+            margin-top: 15px;
+            padding: 12px 30px;
+            font-size: 18px;
+            background-color: rgba(255, 87, 34, 0.5);
+            border-color: rgb(255, 87, 34);
+        }
+        
+        .reset-button:hover {
+            background-color: rgba(255, 87, 34, 0.7);
+        }
+        
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: rgba(33, 150, 243, 0.2);
+            border-radius: 8px;
+            max-width: 900px;
+            color: #fff;
+            text-align: left;
+        }
+        
+        .info h4 {
+            margin-top: 0;
+            color: #64B5F6;
+        }
+        
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .info li {
+            margin: 5px 0;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: rgba(76, 175, 80, 0.5);
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏓 Pong Game with Local AI</h1>
+    <div class="subtitle">✨ Runs 100% in your browser - No server needed! <span class="badge">OFFLINE READY</span></div>
+    
+    <div id="ai-status">Initializing...</div>
+    
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="controls">
+        <h3>🎮 Controls</h3>
+        
+        <div class="control-section">
+            <div class="player-controls">
+                <h4 class="player1-title">Player 1 (Right/Green)</h4>
+                <div class="keys">
+                    <div class="key">↑</div>
+                    <div class="key">↓</div>
+                </div>
+            </div>
+            
+            <div class="player-controls">
+                <h4 class="player2-title">Player 2 (Left/Purple)</h4>
+                <div class="keys">
+                    <div class="key">W</div>
+                    <div class="key">S</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mode-selector">
+            <h3>🤖 Player Modes</h3>
+            <div class="mode-buttons">
+                <div class="player-mode-group">
+                    <label class="player1-title">Player 1:</label>
+                    <div class="mode-button-group">
+                        <button id="p1-human" class="active" onclick="setPlayerMode(1, 'human')">Human</button>
+                        <button id="p1-ai" onclick="setPlayerMode(1, 'ai')">AI</button>
+                    </div>
+                </div>
+                
+                <div class="player-mode-group">
+                    <label class="player2-title">Player 2:</label>
+                    <div class="mode-button-group">
+                        <button id="p2-human" onclick="setPlayerMode(2, 'human')">Human</button>
+                        <button id="p2-ai" class="active" onclick="setPlayerMode(2, 'ai')">AI</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="reset-button" onclick="window.game && window.game.reset()">🔄 Reset Game (R)</button>
+            <button class="reset-button" onclick="clearModelCache()" style="background-color: rgba(33, 150, 243, 0.5); border-color: rgb(33, 150, 243);">🗑️ Clear AI Cache & Reload</button>
+        </div>
+    </div>
+    
+    <script>
+        // Clear model cache and reload page
+        async function clearModelCache() {
+            try {
+                const dbName = 'PongModelCache';
+                await indexedDB.deleteDatabase(dbName);
+                console.log('Cache cleared');
+                alert('Model cache cleared! The page will reload and download the latest model.');
+                location.reload();
+            } catch (error) {
+                console.error('Failed to clear cache:', error);
+                alert('Failed to clear cache: ' + error.message);
+            }
+        }
+    </script>
+    
+    <div class="info">
+        <h4>🚀 About This Game</h4>
+        <ul>
+            <li><strong>Browser-Only AI:</strong> The AI agent runs directly in your browser using ONNX Runtime Web - no backend server required!</li>
+            <li><strong>Offline Ready:</strong> Model is cached locally using IndexedDB after first load - works completely offline</li>
+            <li><strong>Real RL Agent:</strong> Trained using Deep Q-Learning (DQN) with experience replay and frame stacking</li>
+            <li><strong>Fast Inference:</strong> Uses WebGPU/WebAssembly for near-native performance (1-5ms per inference)</li>
+            <li><strong>Privacy First:</strong> All computation happens locally - no data sent to servers</li>
+        </ul>
+        
+        <h4>💡 Technical Details</h4>
+        <ul>
+            <li>Model Format: ONNX (Open Neural Network Exchange)</li>
+            <li>Architecture: 3-layer CNN + 2 FC layers (~10KB model size)</li>
+            <li>Input: 3 stacked 84x84 grayscale frames</li>
+            <li>Output: Q-values for 3 actions (stay, up, down)</li>
+            <li>Storage: IndexedDB for persistent model caching</li>
+        </ul>
+    </div>
+    
+    <!-- ONNX Runtime Web -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    
+    <!-- Game code -->
+    <script type="module" src="game_local.js"></script>
+</body>
+</html>
