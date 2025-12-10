@@ -244,9 +244,11 @@ class PongLocal {
             const modelCache = new ModelCache();
             console.log("✓ Model cache initialized");
             
+            document.getElementById('ai-status').textContent = 'Downloading model...';
             const modelData = await modelCache.getModel('pong_agent.onnx');
             console.log("✓ Model data loaded:", modelData.byteLength, "bytes");
             
+            document.getElementById('ai-status').textContent = 'Initializing AI...';
             this.aiAgent = new ONNXAgent();
             await this.aiAgent.loadModel(modelData);
             console.log("✓ AI agent loaded successfully");
@@ -254,15 +256,27 @@ class PongLocal {
             this.isAIReady = true;
             document.getElementById('ai-status').textContent = 'AI Ready ✓';
             document.getElementById('ai-status').style.color = '#4CAF50';
+            
+            // Start game now that AI is ready
+            this.start();
         } catch (error) {
             console.error("Failed to load AI agent:", error);
             console.error("Error stack:", error.stack);
-            document.getElementById('ai-status').textContent = `AI Failed: ${error.message}`;
+            document.getElementById('ai-status').textContent = `⚠️ AI Failed to Load - Game Paused`;
             document.getElementById('ai-status').style.color = '#FF5252';
-            // Fallback to human mode
-            this.player2Mode = "human";
-            this.updateModeButtons();
-            alert(`AI Loading Failed: ${error.message}\n\nFalling back to Human vs Human mode. Check console for details.`);
+            
+            // Show error message with instructions
+            const errorMsg = `AI Loading Failed: ${error.message}\n\n` +
+                           `The game cannot start because the AI model failed to load.\n\n` +
+                           `Possible solutions:\n` +
+                           `• Check your internet connection\n` +
+                           `• Try clearing the cache (click "Clear AI Cache & Reload" button)\n` +
+                           `• Check browser console for details\n\n` +
+                           `The page will remain paused until you resolve the issue.`;
+            alert(errorMsg);
+            
+            // Don't start the game - let user fix the issue and reload
+            console.error("Game not started due to AI loading failure. Please reload the page after fixing the issue.");
         }
     }
 
@@ -542,5 +556,6 @@ window.setPlayerMode = function(player, mode) {
 // Initialize game when page loads
 window.addEventListener('DOMContentLoaded', () => {
     window.game = new PongLocal();
-    window.game.start();
+    // Don't start immediately - wait for AI to load
+    // Game will start automatically after loadAIAgent() completes
 });
