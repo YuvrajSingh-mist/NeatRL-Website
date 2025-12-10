@@ -15,8 +15,8 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Function to play game
 function playGame(gameId) {
     if (gameId === 'rl-pong') {
-        // Open the Pong game in a new window
-        window.open('../Games/RL-PongGame/frontend/index_websocket.html', '_blank', 'width=1200,height=800');
+        // Open the Pong game in a new window (local AI version - no server needed!)
+        window.open('../Games/RL-PongGame/frontend/index_local.html', '_blank', 'width=1200,height=800');
     }
 }
 
