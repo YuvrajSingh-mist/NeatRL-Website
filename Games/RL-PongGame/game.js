@@ -102,7 +102,8 @@ class Ball {
     move() {
         let newX = this.x;
         let newY = this.y;
-        const xStep = this.getStepIncrement(this.vx);
+        const 
+        xStep = this.getStepIncrement(this.vx);
         const yStep = this.getStepIncrement(this.vy);
         let newRect = null;
 
@@ -113,9 +114,8 @@ class Ball {
         const earlyCollisionDetected = this.checkCollision(ballRect, player1Rect) || 
                                        this.checkCollision(ballRect, player2Rect);
 
-        // Divide velocity by 4 to account for step_repeat in Python version
-        const effectiveVy = this.vy / 4;
-        const effectiveVx = this.vx / 4;
+        const effectiveVy = this.vy;
+        const effectiveVx = this.vx;
 
         // Move Y
         for (let i = 0; i < Math.abs(Math.floor(effectiveVy)); i++) {
